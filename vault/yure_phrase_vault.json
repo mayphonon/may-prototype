@@ -1,0 +1,56 @@
+selector.pymay_prototype/
+├── main.py                      # Mayの入力→出力処理（デモ用）
+├── vault/
+│   ├── yure_phrase_vault.json   # 君が作った構文リスト（構文＋タグ）
+│   └── selector.py              # DPや揺れに応じて構文を選ぶ関数
+├── analyzer/
+│   └── dummy_analyzer.py        # YPS/UO-T/DPを仮に設定（後で接続）
+└── README.md                    # プロトタイプ説明
+
+
+[
+  {
+    "text": "それ、手がうまく動かないときに近い？",
+    "phase": 1,
+    "dp": 1.1,
+    "emotion_weight": 0.3,
+    "temperature": "low",
+    "usage_note": "回避語・縮退語対応可"
+  },
+  {
+    "text": "もしあの気持ちが音だったら、今どこで鳴ってると思う？",
+    "phase": 3,
+    "dp": 3.3,
+    "emotion_weight": 0.8,
+    "temperature": "medium",
+    "usage_note": "Echo構文型問い返し"
+  }
+]
+
+
+import json
+import random
+
+def load_vault(path="vault/yure_phrase_vault.json"):
+    with open(path, "r", encoding="utf-8") as f:
+        return json.load(f)
+
+def select_phrase(dp_level, emotion_level, phase=None):
+    vault = load_vault()
+    filtered = [
+        p for p in vault
+        if abs(p["dp"] - dp_level) <= 0.5
+        and p["emotion_weight"] <= emotion_level
+        and (phase is None or p["phase"] == phase)
+    ]
+    return random.choice(filtered)["text"] if filtered else "（詩的構文を見つけられなかった）"
+
+
+    from vault.selector import select_phrase
+
+    # 仮の入力解析
+    dp = 2.3
+    emotion = 0.6
+
+    print("📤 Mayの出力候補：")
+    print(select_phrase(dp_level=dp, emotion_level=emotion))
